@@ -139,7 +139,7 @@ cd ../../..
 # Add custom theme
 
 mkdir web/themes/custom
-cp -r /Users/rwalker/Documents/2020/drupal-local/custom-theme/agldwg web/themes/custom
+cp -r /....../custom-theme/agldwg web/themes/custom
 # clear theme-registry cache
 vendor/bin/drush cc theme-registry
 # enable it
