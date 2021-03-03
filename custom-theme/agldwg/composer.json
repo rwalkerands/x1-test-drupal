@@ -1,0 +1,13 @@
+{
+    "name": "ardc/x1-custom-theme-agldwg",
+    "description": "X1 AGLDWG Custom Theme",
+    "type": "drupal-custom-theme",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Richard Walker",
+            "email": "Richard.Walker@ardc.edu.au"
+        }
+    ],
+    "require": {}
+}
