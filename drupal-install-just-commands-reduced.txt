@@ -65,6 +65,9 @@ cd ../../..
 # create private directory for use by backup_migrate manual backups
 mkdir -p private/backup_migrate
 
+# Clear cache necessary to force reloading of settings.
+vendor/bin/drush cr
+
 # enable custom theme
 vendor/bin/drush theme:enable agldwg
 # make it the default
@@ -80,6 +83,7 @@ vendor/bin/drush it --choice=force
 
 # Configure the backup destination directory (replace "/tmp" with
 # a suitable value) ...
+# NB: the directory must be writable.
 vendor/bin/drush cset -y backup_migrate.backup_migrate_destination.x1_backups config.directory /tmp
 # ... and only now enable the backup/migrate daily/weekly backups
 vendor/bin/drush en backup_migrate
