@@ -1,0 +1,72 @@
+
+
+cd some-directory
+composer create-project drupal/recommended-project msnd-get-all-by-composer
+cd msnd-get-all-by-composer
+
+composer config repositories.x1-custom-theme-agldwg vcs https://github.com/rwalkerands/x1-custom-theme-agldwg.git
+composer config repositories.x1-custom-module-x1 vcs https://github.com/rwalkerands/x1-custom-module-x1.git
+# Because backup_migrate:^5.0.0-rc2 has lower stability,
+# it must be installed at the "top level".
+composer require drupal/backup_migrate:^5.0.0-rc2
+composer require ardc/x1-custom-module-x1
+
+# Patch vendor/drush/drush/src/Sql/SqlMysql.php
+# to use the correct character set and collation for MySQL:
+sed -i -e \
+'s+DEFAULT CHARACTER SET utf8 +DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci +' \
+  vendor/drush/drush/src/Sql/SqlMysql.php
+
+# Site install. Creates and initializes the database.
+# Replace all "..." with desired values.
+vendor/bin/drush -y si \
+  --db-url=mysql://...user...:...password...@127.0.0.1/...x1drupaldb... \
+  --db-su=root \
+  --db-su-pw=... \
+  --site-mail=... \
+  --account-name=admin \
+  --account-mail=... \
+  --account-pass=... \
+  --locale=en \
+  --site-name="X1 Registry"
+
+cd web/sites/default
+chmod +w .
+# Add trusted_host_patterns setting to shared settings.
+# use a trick to make idempotent; we don't want to lose
+# the original settings.php!
+mkdir settings && mv settings.php settings/settings.shared.php
+
+cat > settings/trusted_host_patterns.php <<'EOF'
+<?php
+
+$settings['trusted_host_patterns'] = [
+  '^localhost$',
+];
+EOF
+
+cat > settings.php <<'EOF'
+<?php
+
+include __DIR__ . '/settings/settings.shared.php';
+include __DIR__ . '/settings/trusted_host_patterns.php';
+EOF
+
+chmod -w . settings.php settings settings/*
+cd ../../..
+
+# enable custom theme
+vendor/bin/drush theme:enable agldwg
+# make it the default
+vendor/bin/drush cset -y system.theme default agldwg
+
+# Enable modules
+vendor/bin/drush en -y x1
+
+# AFTER enabling the x1 module, run this to import the
+# registry_item_status taxonomy:
+vendor/bin/drush cim --partial --source=modules/custom/x1-custom-module-x1/config/taxonomies -y
+vendor/bin/drush it --choice=force
+
+# TODO: backup/migrate backups
+
