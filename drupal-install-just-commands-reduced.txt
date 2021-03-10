@@ -31,7 +31,7 @@ vendor/bin/drush -y si \
   --site-name="X1 Registry"
 
 cd web/sites/default
-chmod +w .
+chmod +w . settings.php settings settings/*
 # Add trusted_host_patterns setting to shared settings.
 # use a trick to make idempotent; we don't want to lose
 # the original settings.php!
@@ -45,15 +45,25 @@ $settings['trusted_host_patterns'] = [
 ];
 EOF
 
+cat > settings/file_private_path.php <<'EOF'
+<?php
+
+$settings['file_private_path'] = '../private';
+EOF
+
 cat > settings.php <<'EOF'
 <?php
 
 include __DIR__ . '/settings/settings.shared.php';
 include __DIR__ . '/settings/trusted_host_patterns.php';
+include __DIR__ . '/settings/file_private_path.php';
 EOF
 
 chmod -w . settings.php settings settings/*
 cd ../../..
+
+# create private directory for use by backup_migrate manual backups
+mkdir -p private/backup_migrate
 
 # enable custom theme
 vendor/bin/drush theme:enable agldwg
@@ -68,5 +78,10 @@ vendor/bin/drush en -y x1
 vendor/bin/drush cim --partial --source=modules/custom/x1-custom-module-x1/config/taxonomies -y
 vendor/bin/drush it --choice=force
 
-# TODO: backup/migrate backups
-
+# Configure the backup destination directory (replace "/tmp" with
+# a suitable value) ...
+vendor/bin/drush cset -y backup_migrate.backup_migrate_destination.x1_backups config.directory /tmp
+# ... and only now enable the backup/migrate daily/weekly backups
+vendor/bin/drush en backup_migrate
+# NB: After a subsequent syncing of the config, you may (?) have to
+# reset this config value.
