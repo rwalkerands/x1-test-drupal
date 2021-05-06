@@ -209,5 +209,5 @@ ${DRUSH} cr
 
 # Allow authenticated users to _view_ revisions:
 ${DRUSH} role:perm:add authenticated \
-  'view dataset revisions,view linkset revisions,view ontology revisions,view organisation revisions,view vocabulary revisions'
+  'view dataset revisions,view ontology revisions,view organisation revisions,view register revisions,view vocabulary revisions'
 
