@@ -168,6 +168,16 @@ ${DRUSH} theme:enable agldwg
 # make it the default
 ${DRUSH} cset -y system.theme default agldwg
 
+# Support updating the href attributes of the links in the "Add
+# Content Types" block content, in case the site is not hosted at the
+# top level.  (The custom block uses href="/node/add/...".)  Achieve
+# this by patching the migration content in advance of running the
+# migration.
+if [[ -n "${SITE_PREFIX}" ]]
+then
+    sed -i -e 's+"/node/add+"'${SITE_PREFIX}'/node/add+g' web/modules/custom/x1-custom-module-x1-block-content/data/block_content/basic/block_content-1.json
+fi
+
 # Enable modules
 ${DRUSH} en -y x1
 ${DRUSH} en -y x1_eme_block_content
