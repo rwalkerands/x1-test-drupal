@@ -246,8 +246,8 @@ ${DRUSH} role:perm:add authenticated \
 # system.action.user_add_role_action.governance and
 # system.action.user_remove_role_action.governance config created for us.
 ${DRUSH} role:create 'governance' 'Governance user'
-# Set weight to 3, i.e., between authenticated and administrator.
-${DRUSH} cset -y user.role.governance weight 3
+# Set weight to 2, i.e., between authenticated and administrator.
+${DRUSH} cset -y user.role.governance weight 2
 # Allow governance users to create and update organisation and register
 # content, and to delete and edit all content.
 ${DRUSH} role:perm:add governance \
