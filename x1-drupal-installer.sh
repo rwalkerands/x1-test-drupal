@@ -215,7 +215,14 @@ ${DRUSH} cset -y core.date_format.medium pattern 'D, d/m/Y - H:i'
 # (it was 'l, F j, Y - H:i')
 ${DRUSH} cset -y core.date_format.long pattern 'l, j F Y - H:i'
 # Need to clear cache after changing those settings.
-${DRUSH} cr
+# OK, but do it later, because there's more stuff to be done.
+# ${DRUSH} cr
+
+# Roles and permissions.
+
+# Ensure administrator role will continue to come last, i.e., after
+# we add our custom governance role.
+${DRUSH} cset -y user.role.administrator weight 10
 
 # Allow anonymous and authenticated users to view the registry status
 # field.
@@ -234,3 +241,17 @@ ${DRUSH} role:perm:add authenticated \
 ${DRUSH} role:perm:add authenticated \
   'view dataset revisions,view ontology revisions,view organisation revisions,view register revisions,view vocabulary revisions'
 
+# Create governance role. We do it this way (i.e., using drush,
+# not a config file), so that we get the extra
+# system.action.user_add_role_action.governance and
+# system.action.user_remove_role_action.governance config created for us.
+${DRUSH} role:create 'governance' 'Governance user'
+# Set weight to 3, i.e., between authenticated and administrator.
+${DRUSH} cset -y user.role.governance weight 3
+# Allow governance users to create and update organisation and register
+# content, and to delete and edit all content.
+${DRUSH} role:perm:add governance \
+  'create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_registry_status'
+
+# And finally, clear the cache to ensure that everything's in sync.
+${DRUSH} cr
