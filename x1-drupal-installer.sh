@@ -217,6 +217,19 @@ ${DRUSH} cset -y core.date_format.long pattern 'l, j F Y - H:i'
 # Need to clear cache after changing those settings.
 ${DRUSH} cr
 
+# Allow anonymous and authenticated users to view the registry status
+# field.
+${DRUSH} role:perm:add anonymous \
+  'view field_registry_status'
+${DRUSH} role:perm:add authenticated \
+  'view field_registry_status'
+
+# Allow authenticated users to create and update their own
+# dataset, ontology, and vocabulary content:
+${DRUSH} role:perm:add authenticated \
+  'create dataset content,create ontology content,create vocabulary content,edit own dataset content,edit own ontology content,edit own vocabulary content'
+# (Organisation and registry content is restricted to the governance role.)
+
 # Allow authenticated users to _view_ revisions:
 ${DRUSH} role:perm:add authenticated \
   'view dataset revisions,view ontology revisions,view organisation revisions,view register revisions,view vocabulary revisions'
