@@ -88,6 +88,11 @@ fi
 composer create-project drupal/recommended-project ${INST_DIR} ${INST_VERSION}
 cd $INST_DIR
 
+# Enable patching by dependencies, i.e., by our custom module x1.
+# Use --json so that we get the proper Boolean value true and not
+# the string value "true".
+composer config --json extra.enable-patching true
+
 composer config repositories.x1-custom-theme-agldwg \
   vcs https://github.com/rwalkerands/x1-custom-theme-agldwg.git
 composer config repositories.x1-custom-module-x1 \
@@ -100,7 +105,19 @@ composer config repositories.x1-custom-module-x1-block-content \
 # No, 5.0.0-rc2 has annoying defects, i.e., can't backup "Entire
 # Site". Use dev instead:
 composer require drupal/backup_migrate:^5.0.x-dev
+# Sigh, same story for mimemail.
+composer require drupal/mimemail:1.x-dev#e72b92ec
+# Sigh, same story for typed_data.
+composer require drupal/typed_data:1.x-dev#27555f47
+# Sigh, same story for rules.
+composer require drupal/rules:3.x-dev#cc5ba050
+
 composer require ardc/x1-custom-module-x1
+
+# We will do some patching; use composer-patches for this.
+# Apply the patches after installing all our custom modules,
+# patches against drupal/core aren't done otherwise.
+composer require cweagans/composer-patches:~1.0 --update-with-dependencies
 
 # Now we know where drush is.
 DRUSH=${ROOT}/${INST_DIR}/vendor/bin/drush
@@ -144,12 +161,57 @@ cat > settings/file_private_path.php <<'EOF'
 $settings['file_private_path'] = '../private';
 EOF
 
+cat > settings/environment_indicator_indicators.php <<'EOF'
+<?php
+$environment_indicator_indicators = array(
+  'production' => array(
+    'bg_color' => '#ef5350',
+    'fg_color' => '#ffffff',
+    'name' => 'production'
+  ),
+  'staging' => array(
+    'bg_color' => '#fff176',
+    'fg_color' => '#000000',
+    'name' => 'staging'
+  ),
+  'test' => array(
+    'bg_color' => '#4caf50',
+    'fg_color' => '#000000',
+    'name' => 'test'
+  ),
+  'development' => array(
+    'bg_color' => '#4caf50',
+    'fg_color' => '#000000',
+    'name' => 'development'
+  ),
+  'local' => array(
+    'bg_color' => '#006600',
+    'fg_color' => '#ffffff',
+    'name' => 'local machine'
+  ),
+);
+EOF
+if [[ -n "${ENVIRONMENT_INDICATOR}" ]] ; then
+    if [[ "${ENVIRONMENT_INDICATOR}" =~ ^[a-z]+$ ]]  ; then
+        # One of our predefined values specified.
+        echo "\$config['environment_indicator.indicator'] = \$environment_indicator_indicators['${ENVIRONMENT_INDICATOR}'];" >> \
+             settings/environment_indicator_indicators.php
+    else
+        # Array value specified; copy it in literally.
+        # Yes, this _is_ an injection vulnerability, so make sure you
+        # control your INI files!
+        echo "\$config['environment_indicator.indicator'] = ${ENVIRONMENT_INDICATOR};" >> \
+             settings/environment_indicator_indicators.php
+    fi
+fi
+
 cat > settings.php <<'EOF'
 <?php
 
 include __DIR__ . '/settings/settings.shared.php';
 include __DIR__ . '/settings/trusted_host_patterns.php';
 include __DIR__ . '/settings/file_private_path.php';
+include __DIR__ . '/settings/environment_indicator_indicators.php';
 EOF
 
 chmod -w . settings.php settings settings/*
