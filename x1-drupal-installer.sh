@@ -12,6 +12,12 @@
 
 # Check requirements: PHP 7.4.
 
+createLocalSettings() {
+    if [[ ! -s settings/settings.local.php ]] ; then
+    echo '<?php' > settings/settings.local.php
+    fi
+}
+
 PHP_VERSION=$(php -r 'echo PHP_VERSION_ID;' 2>/dev/null)
 if [[ -z ${PHP_VERSION} ]] ; then
     echo No PHP, or unknown PHP version.
@@ -192,16 +198,19 @@ $environment_indicator_indicators = array(
 );
 EOF
 if [[ -n "${ENVIRONMENT_INDICATOR}" ]] ; then
+    # We need settings.local.php; create it.
+    createLocalSettings
+
     if [[ "${ENVIRONMENT_INDICATOR}" =~ ^[a-z]+$ ]]  ; then
         # One of our predefined values specified.
         echo "\$config['environment_indicator.indicator'] = \$environment_indicator_indicators['${ENVIRONMENT_INDICATOR}'];" >> \
-             settings/environment_indicator_indicators.php
+             settings/settings.local.php
     else
         # Array value specified; copy it in literally.
         # Yes, this _is_ an injection vulnerability, so make sure you
         # control your INI files!
         echo "\$config['environment_indicator.indicator'] = ${ENVIRONMENT_INDICATOR};" >> \
-             settings/environment_indicator_indicators.php
+             settings/settings.local.php
     fi
 fi
 
@@ -212,6 +221,10 @@ include __DIR__ . '/settings/settings.shared.php';
 include __DIR__ . '/settings/trusted_host_patterns.php';
 include __DIR__ . '/settings/file_private_path.php';
 include __DIR__ . '/settings/environment_indicator_indicators.php';
+
+if (file_exists(__DIR__ . '/settings/settings.local.php')) {
+  include __DIR__ . '/settings/settings.local.php';
+}
 EOF
 
 chmod -w . settings.php settings settings/*
