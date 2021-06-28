@@ -330,5 +330,14 @@ ${DRUSH} cset -y user.role.governance weight 2
 ${DRUSH} role:perm:add governance \
   'create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_registry_status'
 
+# Mimemail settings
+# Email sender settings fall back to SI_SITE_NAME and SI_ACCOUNT_MAIL
+: "${RULES_EMAIL_SENDER:=${SI_ACCOUNT_MAIL}}"
+: "${RULES_EMAIL_NAME:=${SI_SITE_NAME}}"
+
+${DRUSH} cset -y mimemail.settings mail "${RULES_EMAIL_SENDER}"
+${DRUSH} cset -y mimemail.settings name "${RULES_EMAIL_NAME}"
+${DRUSH} cset -y mimemail.settings format "full_html_email"
+
 # And finally, clear the cache to ensure that everything's in sync.
 ${DRUSH} cr
