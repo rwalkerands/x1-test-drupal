@@ -105,18 +105,20 @@ composer config repositories.x1-custom-module-x1 \
   vcs https://github.com/rwalkerands/x1-custom-module-x1.git
 composer config repositories.x1-custom-module-x1-block-content \
   vcs https://github.com/rwalkerands/x1-custom-module-x1-block-content.git
-# Because backup_migrate:^5.0.0-rc2 has lower stability,
-# it must be installed at the "top level".
-#composer require drupal/backup_migrate:^5.0.0-rc2
-# No, 5.0.0-rc2 has annoying defects, i.e., can't backup "Entire
-# Site". Use dev instead:
-composer require drupal/backup_migrate:^5.0.x-dev
-# Sigh, same story for mimemail.
-composer require drupal/mimemail:1.x-dev#e72b92ec
-# Sigh, same story for typed_data.
-composer require drupal/typed_data:1.x-dev#27555f47
-# Sigh, same story for rules.
-composer require drupal/rules:3.x-dev#cc5ba050
+# # Because backup_migrate:^5.0.0-rc2 has lower stability,
+# # it must be installed at the "top level".
+# #composer require drupal/backup_migrate:^5.0.0-rc2
+# No, backup_migrate 5.0.0-rc2 has annoying defects, i.e.,
+# can't backup "Entire Site". Use dev instead.
+# Sigh, similar story for mimemail.
+# Sigh, similar story for typed_data. Needed for format_text("...") filter.
+# Sigh, similar story for rules.
+# Sigh, similar story for tr_rulez.
+composer require drupal/backup_migrate:^5.0.x-dev \
+ drupal/mimemail:1.x-dev#e72b92ec \
+ drupal/typed_data:1.x-dev#27555f47 \
+ drupal/rules:3.x-dev#cc5ba050 \
+ drupal/tr_rulez:1.x-dev
 
 composer require ardc/x1-custom-module-x1
 
