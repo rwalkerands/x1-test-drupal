@@ -330,6 +330,13 @@ ${DRUSH} cset -y user.role.governance weight 2
 ${DRUSH} role:perm:add governance \
   'create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_registry_status'
 
+# Mailsystem settings
+${DRUSH} cset --input-format=yaml -y \
+         mailsystem.settings modules.rules.none - <<EOF
+formatter: mime_mail
+sender: mime_mail
+EOF
+
 # Mimemail settings
 # Email sender settings fall back to SI_SITE_NAME and SI_ACCOUNT_MAIL
 : "${RULES_EMAIL_SENDER:=${SI_ACCOUNT_MAIL}}"
