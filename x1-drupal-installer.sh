@@ -117,7 +117,7 @@ composer config repositories.x1-custom-module-x1-block-content \
 composer require drupal/backup_migrate:^5.0.x-dev \
  drupal/mimemail:1.x-dev#e72b92ec \
  drupal/typed_data:1.x-dev#27555f47 \
- drupal/rules:3.x-dev#cc5ba050 \
+ drupal/rules:3.x-dev#615221d \
  drupal/tr_rulez:1.x-dev
 
 composer require ardc/x1-custom-module-x1
