@@ -359,5 +359,10 @@ ${DRUSH} cset -y mimemail.settings mail "${RULES_EMAIL_SENDER}"
 ${DRUSH} cset -y mimemail.settings name "${RULES_EMAIL_NAME}"
 ${DRUSH} cset -y mimemail.settings format "full_html_email"
 
+# Dodgy, but convenient: run environment-specific code.
+if [[ "$(type -t extra_installation)" == "function" ]]; then
+    extra_installation
+fi
+
 # And finally, clear the cache to ensure that everything's in sync.
 ${DRUSH} cr
