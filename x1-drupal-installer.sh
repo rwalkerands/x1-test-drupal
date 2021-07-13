@@ -256,8 +256,7 @@ then
 fi
 
 # Enable modules
-${DRUSH} en -y x1
-${DRUSH} en -y x1_eme_block_content
+${DRUSH} en -y x1 x1_eme_block_content
 
 # AFTER enabling the x1 module, run this to import the
 # registry_item_status taxonomy:
