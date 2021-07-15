@@ -284,6 +284,8 @@ ${DRUSH} cset -y block.block.agldwg_account_menu settings.label_display visible
 # Region and language settings.
 # Set default country to Australia.
 ${DRUSH} cset -y system.date country.default 'AU'
+# Allow users to set their own timezone at registration time.
+${DRUSH} cset -y system.date timezone.user.default 2
 # Show revision dates as DD/MM/YYYY, not as MM/DD/YYYY.
 ${DRUSH} cset -y core.date_format.short pattern 'd/m/Y - H:i'
 ${DRUSH} cset -y core.date_format.medium pattern 'D, d/m/Y - H:i'
