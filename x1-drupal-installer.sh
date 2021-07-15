@@ -309,6 +309,14 @@ ${DRUSH} role:perm:add anonymous \
 ${DRUSH} role:perm:add authenticated \
   'view field_date_accepted,view field_registry_status,view field_reviewer'
 
+# Permissions for comments.
+# Don't allow anonymous users to view comments.
+${DRUSH} role:perm:remove anonymous \
+  'access comments'
+# Allow authenticated users to edit their own comments.
+${DRUSH} role:perm:add authenticated \
+  'edit own comments'
+
 # Allow authenticated users to create and update their own
 # dataset, ontology, and vocabulary content:
 ${DRUSH} role:perm:add authenticated \
@@ -327,10 +335,10 @@ ${DRUSH} role:create 'governance' 'Governance user'
 # Set weight to 2, i.e., between authenticated and administrator.
 ${DRUSH} cset -y user.role.governance weight 2
 # Allow governance users to create and update organisation and register
-# content, and to delete and edit all content.
+# content, and to delete and edit all content and administer comments.
 # NB: The list of permissions should match that for ARDC Services below.
 ${DRUSH} role:perm:add governance \
-  'create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_date_accepted,edit field_registry_status,edit field_reviewer'
+  'administer comments,create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_date_accepted,edit field_registry_status,edit field_reviewer'
 
 # Create ARDC Services role. We do it this way (i.e., using drush,
 # not a config file), so that we get the extra
@@ -340,10 +348,10 @@ ${DRUSH} role:create 'ardc_services' 'ARDC Services user'
 # Set weight to 3, i.e., between governance and administrator.
 ${DRUSH} cset -y user.role.ardc_services weight 3
 # Allow ARDC Services users to create and update organisation and register
-# content, and to delete and edit all content.
+# content, and to delete and edit all content and administer comments.
 # NB: The list of permissions should match that for governance above.
 ${DRUSH} role:perm:add ardc_services \
-  'create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_date_accepted,edit field_registry_status,edit field_reviewer'
+  'administer comments,create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_date_accepted,edit field_registry_status,edit field_reviewer'
 
 # Mailsystem settings
 ${DRUSH} cset --input-format=yaml -y \
