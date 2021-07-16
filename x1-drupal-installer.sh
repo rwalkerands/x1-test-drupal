@@ -299,7 +299,7 @@ ${DRUSH} cset -y core.date_format.long pattern 'l, j F Y - H:i'
 # Roles and permissions.
 
 # Ensure administrator role will continue to come last, i.e., after
-# we add our custom governance role.
+# we add our custom 'control body' and 'registry manager' roles.
 ${DRUSH} cset -y user.role.administrator weight 10
 
 # Allow anonymous and authenticated users to view the fields that
@@ -321,36 +321,37 @@ ${DRUSH} role:perm:add authenticated \
 # dataset, ontology, and vocabulary content:
 ${DRUSH} role:perm:add authenticated \
   'create dataset content,create ontology content,create vocabulary content,edit own dataset content,edit own ontology content,edit own vocabulary content'
-# (Organisation and registry content is restricted to the governance role.)
+# (Organisation and registry content is restricted to the control body
+# and registry manager roles.)
 
 # Allow authenticated users to _view_ revisions:
 ${DRUSH} role:perm:add authenticated \
   'view dataset revisions,view ontology revisions,view organisation revisions,view register revisions,view vocabulary revisions'
 
-# Create governance role. We do it this way (i.e., using drush,
+# Create control body role. We do it this way (i.e., using drush,
 # not a config file), so that we get the extra
-# system.action.user_add_role_action.governance and
-# system.action.user_remove_role_action.governance config created for us.
-${DRUSH} role:create 'governance' 'Governance user'
-# Set weight to 2, i.e., between authenticated and administrator.
-${DRUSH} cset -y user.role.governance weight 2
-# Allow governance users to create and update organisation and register
+# system.action.user_add_role_action.control_body and
+# system.action.user_remove_role_action.control_body config created for us.
+${DRUSH} role:create 'control_body' 'Control body user'
+# Set weight to 2, i.e., between authenticated and registry manager.
+${DRUSH} cset -y user.role.control_body weight 2
+# Allow control body users to create and update organisation and register
 # content, and to delete and edit all content and administer comments.
-# NB: The list of permissions should match that for ARDC Services below.
-${DRUSH} role:perm:add governance \
+# NB: The list of permissions should match that for registry manager below.
+${DRUSH} role:perm:add control_body \
   'administer comments,create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_date_accepted,edit field_registry_status,edit field_reviewer'
 
-# Create ARDC Services role. We do it this way (i.e., using drush,
+# Create registry manager role. We do it this way (i.e., using drush,
 # not a config file), so that we get the extra
-# system.action.user_add_role_action.ardc_services and
-# system.action.user_remove_role_action.ardc_services config created for us.
-${DRUSH} role:create 'ardc_services' 'ARDC Services user'
-# Set weight to 3, i.e., between governance and administrator.
-${DRUSH} cset -y user.role.ardc_services weight 3
-# Allow ARDC Services users to create and update organisation and register
+# system.action.user_add_role_action.registry_manager and
+# system.action.user_remove_role_action.registry_manager config created for us.
+${DRUSH} role:create 'registry_manager' 'Registry manager user'
+# Set weight to 3, i.e., between control body and administrator.
+${DRUSH} cset -y user.role.registry_manager weight 3
+# Allow registry manager users to create and update organisation and register
 # content, and to delete and edit all content and administer comments.
-# NB: The list of permissions should match that for governance above.
-${DRUSH} role:perm:add ardc_services \
+# NB: The list of permissions should match that for control body above.
+${DRUSH} role:perm:add registry_manager \
   'administer comments,create organisation content,create register content,delete any dataset content,delete any ontology content,delete any organisation content,delete any register content,delete any vocabulary content,edit any dataset content,edit any ontology content,edit any organisation content,edit any register content,edit any vocabulary content,edit field_date_accepted,edit field_registry_status,edit field_reviewer'
 
 # Mailsystem settings
