@@ -155,13 +155,29 @@ chmod +w . settings.php settings settings/*
 # the original settings.php!
 mkdir settings && mv settings.php settings/settings.shared.php
 
+# Create settings/trusted_host_patterns.php from three
+# sections: header; list of trusted host patterns; trailer.
+# Header ...
 cat > settings/trusted_host_patterns.php <<'EOF'
 <?php
 
 $settings['trusted_host_patterns'] = [
+EOF
+
+# ... list of trusted host patterns ...
+if [[ -n "${TRUSTED_HOST_PATTERNS}" ]] ; then
+    echo "${TRUSTED_HOST_PATTERNS}"  >> settings/trusted_host_patterns.php
+else
+    cat >> settings/trusted_host_patterns.php <<'EOF'
   '^localhost$',
+EOF
+fi
+
+# ... trailer.
+cat >> settings/trusted_host_patterns.php <<'EOF'
 ];
 EOF
+
 
 cat > settings/file_private_path.php <<'EOF'
 <?php
@@ -369,6 +385,14 @@ EOF
 ${DRUSH} cset -y mimemail.settings mail "${RULES_EMAIL_SENDER}"
 ${DRUSH} cset -y mimemail.settings name "${RULES_EMAIL_NAME}"
 ${DRUSH} cset -y mimemail.settings format "full_html_email"
+
+# CONTACT_FEEDBACK_MAIL is optional. Drupal defaults to sending
+# the feedback contact form submissions to the site_email setting.
+if [[ -n "${CONTACT_FEEDBACK_MAIL}" ]] ; then
+    ${DRUSH} cset -y --input-format=yaml \
+             --value="[ ${CONTACT_FEEDBACK_MAIL} ]" \
+             contact.form.feedback recipients
+fi
 
 # Dodgy, but convenient: run environment-specific code.
 if [[ "$(type -t extra_installation)" == "function" ]]; then
