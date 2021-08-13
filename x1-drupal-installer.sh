@@ -293,9 +293,14 @@ ${DRUSH} cset -y backup_migrate.backup_migrate_destination.x1_backups \
 # NB: After a subsequent syncing of the config, you may (?) have to
 # reset this config value.
 
-# Move the user account menu to the sidebar:
+# Move the user account menu to the sidebar.
 ${DRUSH} cset -y block.block.agldwg_account_menu region sidebar_first
 ${DRUSH} cset -y block.block.agldwg_account_menu settings.label_display visible
+
+# Hide the breadcrumbs, because they're often wrong/misleading, and
+# we aren't going to fix them (yet).
+${DRUSH} cset -y --input-format=yaml --value=false \
+         block.block.agldwg_breadcrumbs status
 
 # Region and language settings.
 # Set default country to Australia.
