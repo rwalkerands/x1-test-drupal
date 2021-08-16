@@ -399,6 +399,16 @@ if [[ -n "${CONTACT_FEEDBACK_MAIL}" ]] ; then
              contact.form.feedback recipients
 fi
 
+# (Temporary, we hope) workaround for readonlymode so that the list
+# views (/vocabularies, etc.) continue to work when in read-only mode. See:
+#   https://www.drupal.org/project/readonlymode/issues/3228261
+ROM_FORMS=$( ${DRUSH} cget --format=yaml \
+                      readonlymode.settings forms.default.edit)
+if [[ "${ROM_FORMS}" != "*views_exposed_form*" ]] ; then
+    ${DRUSH} cset -y readonlymode.settings forms.additional.edit \
+             views_exposed_form
+fi
+
 # Dodgy, but convenient: run environment-specific code.
 if [[ "$(type -t extra_installation)" == "function" ]]; then
     extra_installation
