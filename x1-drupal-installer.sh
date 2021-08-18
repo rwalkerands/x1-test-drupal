@@ -80,6 +80,16 @@ then
     echo There is a missing SI_ setting.
     exit 1
 fi
+# Support optional SI_SITES_SUBDIR setting.
+SI_SITES_SUBDIR_OPTION=""
+if [[ -n "${SI_SITES_SUBDIR}" ]] ; then
+    SITE_SUBDIR="${SI_SITES_SUBDIR}"
+    DRUSH_URI="--uri=${SI_SITES_SUBDIR}"
+    SI_SITES_SUBDIR_OPTION="--sites-subdir=${SI_SITES_SUBDIR}"
+else
+    SITE_SUBDIR=default
+    DRUSH_URI=""
+fi
 
 # Creates the installation as a new subdirectory
 # of the current directory; it must not already exist.
@@ -128,7 +138,7 @@ composer require ardc/x1-custom-module-x1
 composer require cweagans/composer-patches:~1.0 --update-with-dependencies
 
 # Now we know where drush is.
-DRUSH=${ROOT}/${INST_DIR}/vendor/bin/drush
+DRUSH="${ROOT}/${INST_DIR}/vendor/bin/drush ${DRUSH_URI}"
 
 # Patch vendor/drush/drush/src/Sql/SqlMysql.php
 # to use the correct character set and collation for MySQL:
@@ -141,14 +151,24 @@ ${DRUSH} -y si \
   --db-url="${SI_DB_URL}" \
   --db-su="${SI_DB_SU}" \
   --db-su-pw="${SI_DB_SU_PW}" \
-  --site-mail="${SI_SITE_MAIL}" \
   --account-name="${SI_ACCOUNT_NAME}" \
   --account-mail="${SI_ACCOUNT_MAIL}" \
+  --site-mail="${SI_SITE_MAIL}" \
   --account-pass="${SI_ACCOUNT_PASS}" \
   --locale="${SI_LOCALE}" \
-  --site-name="${SI_SITE_NAME}"
+  --site-name="${SI_SITE_NAME}" \
+  ${SI_SITES_SUBDIR_OPTION}
 
-cd web/sites/default
+cd web/sites
+# $sites['localhost.example'] = 'example.com';
+# Support optional SI_SITES_SUBDIR setting. If it was given,
+# we now have a sites.php file.
+# If SITES_KEY is also given, add it to sites.php.
+if [[ -n "${SI_SITES_SUBDIR}" && -n "${SITES_KEY}" ]] ; then
+    echo "\$sites['${SITES_KEY}'] = '${SI_SITES_SUBDIR}';" >> sites.php
+fi
+
+cd ${SITE_SUBDIR}
 chmod +w . settings.php settings settings/*
 # Add trusted_host_patterns setting to shared settings.
 # use a trick to make idempotent; we don't want to lose
