@@ -170,10 +170,10 @@ fi
 
 cd ${SITE_SUBDIR}
 chmod +w . settings.php settings settings/*
-# Add trusted_host_patterns setting to shared settings.
-# use a trick to make idempotent; we don't want to lose
+# Add trusted_host_patterns setting.
+# Use a trick to make idempotent; we don't want to lose
 # the original settings.php!
-mkdir settings && mv settings.php settings/settings.shared.php
+mkdir settings && mv settings.php settings/settings.original.php
 
 # Create settings/trusted_host_patterns.php from three
 # sections: header; list of trusted host patterns; trailer.
@@ -255,7 +255,7 @@ fi
 cat > settings.php <<'EOF'
 <?php
 
-include __DIR__ . '/settings/settings.shared.php';
+include __DIR__ . '/settings/settings.original.php';
 include __DIR__ . '/settings/trusted_host_patterns.php';
 include __DIR__ . '/settings/file_private_path.php';
 include __DIR__ . '/settings/environment_indicator_indicators.php';
