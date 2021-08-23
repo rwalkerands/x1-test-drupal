@@ -141,10 +141,12 @@ composer require cweagans/composer-patches:~1.0 --update-with-dependencies
 DRUSH="${ROOT}/${INST_DIR}/vendor/bin/drush ${DRUSH_URI}"
 
 # Patch vendor/drush/drush/src/Sql/SqlMysql.php
-# to use the correct character set and collation for MySQL:
-sed -i -e \
-'s+DEFAULT CHARACTER SET utf8 +DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci +' \
-  vendor/drush/drush/src/Sql/SqlMysql.php
+# to use the correct character set and collation for MySQL.
+# No longer need to do this here; we do it using a patch specified
+# in x1-custom-module-x1's composer.json.
+# sed -i -e \
+# 's+DEFAULT CHARACTER SET utf8 +DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci +' \
+#   vendor/drush/drush/src/Sql/SqlMysql.php
 
 # Site install. Creates and initializes the database.
 ${DRUSH} -y si \
