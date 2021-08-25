@@ -115,25 +115,30 @@ composer config repositories.x1-custom-module-x1 \
   vcs https://github.com/rwalkerands/x1-custom-module-x1.git
 composer config repositories.x1-custom-module-x1-block-content \
   vcs https://github.com/rwalkerands/x1-custom-module-x1-block-content.git
-# # Because backup_migrate:^5.0.0-rc2 has lower stability,
-# # it must be installed at the "top level".
-# #composer require drupal/backup_migrate:^5.0.0-rc2
-# No, backup_migrate 5.0.0-rc2 has annoying defects, i.e.,
-# can't backup "Entire Site". Use dev instead.
-# Sigh, similar story for mimemail.
-# Sigh, similar story for typed_data. Needed for format_text("...") filter.
-# Sigh, similar story for rules.
-# Sigh, similar story for tr_rulez.
-composer require drupal/backup_migrate:^5.0.x-dev \
+# We need dev versions of some modules. Because they have lower stability,
+# they must be installed at the "top level":
+#  mimemail.
+#  typed_data. Needed for format_text("...") filter.
+#  rules.
+#  tr_rulez.
+# Was:
+# composer require drupal/backup_migrate:^5.0.x-dev \
+#  drupal/mimemail:1.x-dev#e72b92ec \
+#  drupal/typed_data:1.x-dev#27555f47 \
+#  drupal/rules:3.x-dev#615221d \
+#  drupal/tr_rulez:1.x-dev
+# But now some dev code has been incorporated into a release. So now:
+composer require \
  drupal/mimemail:1.x-dev#e72b92ec \
  drupal/typed_data:1.x-dev#27555f47 \
  drupal/rules:3.x-dev#615221d \
  drupal/tr_rulez:1.x-dev
 
+# Now we're ready to install our project module.
 composer require ardc/x1-custom-module-x1
 
 # We will do some patching; use composer-patches for this.
-# Apply the patches after installing all our custom modules,
+# We apply the patches only _after_ installing all our custom modules;
 # patches against drupal/core aren't done otherwise.
 composer require cweagans/composer-patches:~1.0 --update-with-dependencies
 
@@ -142,7 +147,7 @@ DRUSH="${ROOT}/${INST_DIR}/vendor/bin/drush ${DRUSH_URI}"
 
 # Patch vendor/drush/drush/src/Sql/SqlMysql.php
 # to use the correct character set and collation for MySQL.
-# No longer need to do this here; we do it using a patch specified
+# No, we no longer need to do this here; we do it using a patch specified
 # in x1-custom-module-x1's composer.json.
 # sed -i -e \
 # 's+DEFAULT CHARACTER SET utf8 +DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci +' \
