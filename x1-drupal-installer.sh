@@ -12,9 +12,12 @@
 
 # Check requirements: PHP 7.4.
 
-createLocalSettings() {
-    if [[ ! -s settings/settings.local.php ]] ; then
-    echo '<?php' > settings/settings.local.php
+# Local settings file. Relative to the sites directory.
+# NB: The value set here must match the value used in settings.php below.
+LOCAL_SETTINGS=settings/settings.local.php
+requireLocalSettings() {
+    if [[ ! -s "${LOCAL_SETTINGS}" ]] ; then
+    echo '<?php' > "${LOCAL_SETTINGS}"
     fi
 }
 
@@ -89,6 +92,19 @@ if [[ -n "${SI_SITES_SUBDIR}" ]] ; then
 else
     SITE_SUBDIR=default
     DRUSH_URI=""
+fi
+
+# Require that neither or both FILE_PUBLIC_PATH and FILE_PUBLIC_BASE_URL
+# be specified.
+# xor: https://stackoverflow.com/questions/56700325/xor-conditional-in-bash
+if [[ "${FILE_PUBLIC_PATH:+A}" != "${FILE_PUBLIC_BASE_URL:+A}" ]]; then
+    echo Specified only one of FILE_PUBLIC_PATH and FILE_PUBLIC_BASE_URL.
+    exit 1
+fi
+# Ditto with MAIN_SITE_REDIRECT_PATH.
+if [[ "${FILE_PUBLIC_PATH:+A}" != "${MAIN_SITE_REDIRECT_PATH:+A}" ]]; then
+    echo Specified only one of FILE_PUBLIC_PATH and MAIN_SITE_REDIRECT_PATH.
+    exit 1
 fi
 
 # Creates the installation as a new subdirectory
@@ -205,11 +221,12 @@ cat >> settings/trusted_host_patterns.php <<'EOF'
 ];
 EOF
 
-
-cat > settings/file_private_path.php <<'EOF'
+# Set file_private_path; we provide a default, relative to web.
+: "${FILE_PRIVATE_PATH:=../private}"
+cat > settings/file_private_path.php <<EOF
 <?php
 
-$settings['file_private_path'] = '../private';
+\$settings['file_private_path'] = '${FILE_PRIVATE_PATH}';
 EOF
 
 cat > settings/environment_indicator_indicators.php <<'EOF'
@@ -244,19 +261,60 @@ $environment_indicator_indicators = array(
 EOF
 if [[ -n "${ENVIRONMENT_INDICATOR}" ]] ; then
     # We need settings.local.php; create it.
-    createLocalSettings
+    requireLocalSettings
 
     if [[ "${ENVIRONMENT_INDICATOR}" =~ ^[a-z]+$ ]]  ; then
         # One of our predefined values specified.
         echo "\$config['environment_indicator.indicator'] = \$environment_indicator_indicators['${ENVIRONMENT_INDICATOR}'];" >> \
-             settings/settings.local.php
+             "${LOCAL_SETTINGS}"
     else
         # Array value specified; copy it in literally.
-        # Yes, this _is_ an injection vulnerability, so make sure you
-        # control your INI files!
+        # Yes, this _is_ one of many injection vulnerabilities, so make sure
+        # you control your INI files!
         echo "\$config['environment_indicator.indicator'] = ${ENVIRONMENT_INDICATOR};" >> \
-             settings/settings.local.php
+             "${LOCAL_SETTINGS}"
     fi
+fi
+
+# Now support FILE_PUBLIC_PATH and FILE_PUBLIC_BASE_URL.
+if [[ -n "${FILE_PUBLIC_PATH}" ]] ; then
+    # We need settings.local.php.
+    requireLocalSettings
+
+    if [[ -e "${FILE_PUBLIC_PATH}" ]] ; then
+        # Destination already exists; try renaming it.
+        mv -f "${FILE_PUBLIC_PATH}" "${FILE_PUBLIC_PATH}-$(date '+%s')" || \
+            { echo "Unable to rename existing public path" ; exit 1 ; }
+    fi
+    # Now move it into place.
+    mv -f files "${FILE_PUBLIC_PATH}" || \
+            { echo "Unable to move public files directory" ; exit 1 ; }
+    cat >> "${LOCAL_SETTINGS}" <<EOF
+
+\$settings['file_public_base_url'] = '${FILE_PUBLIC_BASE_URL}';
+\$settings['file_public_path'] = '${FILE_PUBLIC_PATH}';
+# In case we ever want to use it, set config_sync_directory.
+# NB: we don't create this directory here.
+\$settings['config_sync_directory'] = '${FILE_PRIVATE_PATH}/config_sync';
+EOF
+    # TODO: Now update .htaccess
+    # Update .htaccess in the files directory, so that
+    # Requests for non-existent files are redirected to Drupal.
+    chmod u+w "${FILE_PUBLIC_PATH}/.htaccess"
+    cat >> "${FILE_PUBLIC_PATH}/.htaccess" <<EOF
+
+
+RewriteEngine on
+# Make sure Authorization HTTP header is available to PHP
+# even when running as CGI or FastCGI.
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !=/favicon.ico
+RewriteRule ^ ${MAIN_SITE_REDIRECT_PATH}index.php [L]
+EOF
+    chmod u-w "${FILE_PUBLIC_PATH}/.htaccess"
 fi
 
 cat > settings.php <<'EOF'
@@ -273,22 +331,28 @@ if (file_exists(__DIR__ . '/settings/settings.local.php')) {
 EOF
 
 chmod -w . settings.php settings settings/*
-cd ../../..
 
-# create private directory for use by backup_migrate manual backups
+# Back up to the web directory ...
+cd ../..
+
+# Create private directory for use by backup_migrate backups.
+# Hmm, still needed?
 # TODO: ensure writable by PHP
-mkdir -p private/backup_migrate
-mkdir -p private/backups
+#mkdir -p "${FILE_PRIVATE_PATH}/backup_migrate"
+mkdir -p "${FILE_PRIVATE_PATH}/backups"
 
-# Clear cache necessary to force reloading of settings.
+# ... and now back to the top level of the installation.
+cd ..
+
+# Clear cache; necessary to force reloading of settings.
 ${DRUSH} cr
 
-# enable custom theme
+# Enable the custom theme.
 ${DRUSH} theme:enable agldwg
-# make it the default
+# Make it the default.
 ${DRUSH} cset -y system.theme default agldwg
 
-# Enable modules
+# Enable modules.
 ${DRUSH} en -y x1 x1_eme_block_content
 
 # AFTER enabling the x1 module, run this to import the
